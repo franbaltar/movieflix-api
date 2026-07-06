@@ -1,11 +1,14 @@
 import express from "express";
 import { PrismaClient } from "./generated/prisma/index.js";
+import swaggerUi from "swagger-ui-express";
+import swaggerDocument from "../swagger.json" with { type: "json" };
 
 const port = 3000;
 const app = express();
 const prisma = new PrismaClient();
 
 app.use(express.json());
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.get("/movies", async (_, res) => {
   const movies = await prisma.movie.findMany({
@@ -51,7 +54,6 @@ app.post("/movies", async (req, res) => {
 });
 
 app.put("/movies/:id", async (req, res) => {
-  //pegar o id do registro que vai ser atualizado
   const id = Number(req.params.id);
 
   try {
@@ -69,7 +71,6 @@ app.put("/movies/:id", async (req, res) => {
       ? new Date(data.release_date)
       : undefined;
 
-    //pegar os dados do filmes que será atualizado e atualizar ele no prisma
     await prisma.movie.update({
       where: {
         id,
@@ -81,8 +82,6 @@ app.put("/movies/:id", async (req, res) => {
       .status(500)
       .send({ message: "Falha ao atualizar o registro do filme" });
   }
-
-  //retornar o status correto informando que o filme foi atualizado
 
   res.status(200).send();
 });
